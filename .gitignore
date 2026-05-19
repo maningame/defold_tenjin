@@ -20,3 +20,6 @@ builtins
 
 manifest.private.der
 manifest.public.der
+
+debug.keystore
+debug.keystore.pass.txt
