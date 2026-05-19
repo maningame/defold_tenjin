@@ -8,3 +8,15 @@ Thumbs.db
 .project
 .cproject
 builtins
+/.editor_settings
+
+.idea
+.vscode
+.defold
+
+/debugger
+/dist
+/debug
+
+manifest.private.der
+manifest.public.der
