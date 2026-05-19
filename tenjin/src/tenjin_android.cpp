@@ -56,8 +56,8 @@ void Tenjin_Init(const char*api_key, bool gdpr_consent)
     jmethodID method = env->GetStaticMethodID(cls, "Init", "(Landroid/app/Activity;Ljava/lang/String;Z)V");
 
     jstring key = env->NewStringUTF(api_key);
-    
-    env->CallStaticObjectMethod(cls, method, dmGraphics::GetNativeAndroidActivity(), key, gdpr_consent ? JNI_TRUE : JNI_FALSE);
+
+    env->CallStaticVoidMethod(cls, method, dmGraphics::GetNativeAndroidActivity(), key, gdpr_consent ? JNI_TRUE : JNI_FALSE);
 
     env->DeleteLocalRef(key);
 }
@@ -69,10 +69,10 @@ void Tenjin_CustomEvent(const char*event_name)
 
     jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
     jmethodID method = env->GetStaticMethodID(cls, "CustomEvent", "(Ljava/lang/String;)V");
-    
+
     jstring eventName = env->NewStringUTF(event_name);
 
-    env->CallStaticObjectMethod(cls, method, eventName);
+    env->CallStaticVoidMethod(cls, method, eventName);
 
     env->DeleteLocalRef(eventName);
 }
@@ -88,7 +88,7 @@ void Tenjin_CustomEventWithValue(const char*event_name, const char*event_value)
     jstring eventName = env->NewStringUTF(event_name);
     jstring eventValue = env->NewStringUTF(event_value);
 
-    env->CallStaticObjectMethod(cls, method, eventName, eventValue);
+    env->CallStaticVoidMethod(cls, method, eventName, eventValue);
 
     env->DeleteLocalRef(eventName);
     env->DeleteLocalRef(eventValue);
@@ -105,7 +105,7 @@ void Tenjin_PurchaseEvent(const char* product_id, const char* currency_code, con
     jstring productId = env->NewStringUTF(product_id);
     jstring currencyCode = env->NewStringUTF(currency_code);
 
-    env->CallStaticObjectMethod(cls, method, productId, currencyCode, quantity, price);
+    env->CallStaticVoidMethod(cls, method, productId, currencyCode, quantity, price);
 
     env->DeleteLocalRef(productId);
     env->DeleteLocalRef(currencyCode);
