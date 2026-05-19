@@ -10,6 +10,7 @@ height = 640
 
 [android]
 input_method = HiddenInputField
+minimum_sdk_version = 21
 
 [project]
 title = tenjin
