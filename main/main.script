@@ -1,0 +1,10 @@
+function init(self)
+	if tenjin then
+		local sdk_key = sys.get_config_string("tenjin.sdk_key")
+		
+		tenjin.init(sdk_key, true)
+		tenjin.custom_event("custom_event")
+		tenjin.custom_event_with_value("custom_event", "10")
+		tenjin.purchase_event("com.company.inapp", "USD", 1, 0.99)
+	end
+end
