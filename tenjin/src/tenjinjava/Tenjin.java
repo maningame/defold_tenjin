@@ -21,6 +21,10 @@ class Tenjin {
         tenjinInstance.connect();  
     }
 
+    public static final void SetCustomerUserId(String userId) {
+        tenjinInstance.setCustomerUserId(userId);
+    }
+
     public static final void CustomEvent(String eventName) {
         tenjinInstance.eventWithName(eventName);
     }

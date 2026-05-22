@@ -17,6 +17,13 @@ static int init(lua_State* L) {
     return 0;
 }
 
+static int set_customer_user_id(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 0);
+    const char* user_id = luaL_checkstring(L, 1);
+    Tenjin_SetCustomerUserId(user_id);
+    return 0;
+}
+
 static int custom_event(lua_State* L) {
     DM_LUA_STACK_CHECK(L, 0);
     const char* event_name = luaL_checkstring(L, 1);
@@ -46,6 +53,7 @@ static int purchase_event(lua_State* L) {
 static const luaL_reg Module_methods[] =
 {
     {"init", init},
+    {"set_customer_user_id", set_customer_user_id},
     {"custom_event", custom_event},
     {"custom_event_with_value", custom_event_with_value},
     {"purchase_event", purchase_event},

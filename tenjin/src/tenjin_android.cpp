@@ -62,6 +62,21 @@ void Tenjin_Init(const char*api_key, bool gdpr_consent)
     env->DeleteLocalRef(key);
 }
 
+void Tenjin_SetCustomerUserId(const char* user_id)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+
+    jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
+    jmethodID method = env->GetStaticMethodID(cls, "SetCustomerUserId", "(Ljava/lang/String;)V");
+
+    jstring userId = env->NewStringUTF(user_id);
+
+    env->CallStaticVoidMethod(cls, method, userId);
+
+    env->DeleteLocalRef(userId);
+}
+
 void Tenjin_CustomEvent(const char*event_name)
 {
     AttachScope attachscope;

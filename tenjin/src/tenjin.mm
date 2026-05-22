@@ -17,6 +17,10 @@ void Tenjin_Init(const char* api_key, bool gdpr_consent) {
     [TenjinSDK connect];
 }
 
+void Tenjin_SetCustomerUserId(const char* user_id) {
+    [TenjinSDK setCustomerUserId:[NSString stringWithUTF8String:user_id]];
+}
+
 void Tenjin_CustomEvent(const char* event_name) {
     [TenjinSDK sendEventWithName:[NSString stringWithUTF8String:event_name]]; 
 }
