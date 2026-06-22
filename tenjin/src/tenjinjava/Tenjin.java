@@ -33,8 +33,12 @@ class Tenjin {
         tenjinInstance.eventWithNameAndValue(eventName, eventValue);
     }
 
-    public static final void PurchaseEvent(String productId, String currencyCode, int quantity, double unitPrice) {
-        tenjinInstance.transaction(productId, currencyCode, quantity, unitPrice);
+    public static final void PurchaseEvent(String productId, String currencyCode, int quantity, double unitPrice, String purchaseData, String dataSignature) {
+        if (purchaseData != null && !purchaseData.isEmpty() && dataSignature != null && !dataSignature.isEmpty()) {
+            tenjinInstance.transaction(productId, currencyCode, quantity, unitPrice, purchaseData, dataSignature);
+        } else {
+            tenjinInstance.transaction(productId, currencyCode, quantity, unitPrice);
+        }
     }
 
 }

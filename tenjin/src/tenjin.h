@@ -5,6 +5,6 @@ extern void Tenjin_Init(const char*api_key, bool gdpr_consent);
 extern void Tenjin_SetCustomerUserId(const char*user_id);
 extern void Tenjin_CustomEvent(const char*event_name);
 extern void Tenjin_CustomEventWithValue(const char*event_name, const char*event_value);
-extern void Tenjin_PurchaseEvent(const char*product_id, const char*currency_code, const int quantity, const double price);
+extern void Tenjin_PurchaseEvent(const char*product_id, const char*currency_code, const int quantity, const double price, const char*transaction_id, const char*receipt, const char*signature);
 
 #endif

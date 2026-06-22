@@ -45,8 +45,11 @@ static int purchase_event(lua_State* L) {
     const char* currency_code = luaL_checkstring(L, 2);
     const int quantity = luaL_checkinteger(L, 3);
     const lua_Number price = luaL_checknumber(L, 4);
-    
-    Tenjin_PurchaseEvent(product_id, currency_code, quantity, price);
+    const char* transaction_id = luaL_optstring(L, 5, "");
+    const char* receipt = luaL_optstring(L, 6, "");
+    const char* signature = luaL_optstring(L, 7, "");
+
+    Tenjin_PurchaseEvent(product_id, currency_code, quantity, price, transaction_id, receipt, signature);
     return 0;
 }
 

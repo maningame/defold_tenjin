@@ -29,11 +29,29 @@ void Tenjin_CustomEventWithValue(const char* event_name, const char* event_value
     [TenjinSDK sendEventWithName:[NSString stringWithUTF8String:event_name] andEventValue:[NSString stringWithUTF8String:event_value]]; 
 }
 
-void Tenjin_PurchaseEvent(const char* product_id, const char* currency_code, const int quantity, const double price) {
-    [TenjinSDK  transactionWithProductName: [NSString stringWithUTF8String:product_id] 
-                andCurrencyCode: [NSString stringWithUTF8String:currency_code] 
-                andQuantity: (NSInteger) quantity
-                andUnitPrice: [NSNumber numberWithDouble:price]];
+void Tenjin_PurchaseEvent(const char* product_id, const char* currency_code, const int quantity, const double price, const char* transaction_id, const char* receipt, const char* signature) {
+    NSString* productName = [NSString stringWithUTF8String:product_id];
+    NSString* currencyCode = [NSString stringWithUTF8String:currency_code];
+    NSDecimalNumber* unitPrice = [NSDecimalNumber decimalNumberWithDecimal:[[NSNumber numberWithDouble:price] decimalValue]];
+    NSString* transactionId = [NSString stringWithUTF8String:transaction_id];
+    NSString* base64Receipt = [NSString stringWithUTF8String:receipt];
+
+    // Pass the App Store transaction id + base64 receipt so Tenjin can verify the
+    // purchase; verified purchases are the ones that show in the dashboard.
+    // Fall back to the unverified call when no receipt is supplied.
+    if (transactionId.length > 0 && base64Receipt.length > 0) {
+        [TenjinSDK transactionWithProductName: productName
+                    andCurrencyCode: currencyCode
+                    andQuantity: (NSInteger) quantity
+                    andUnitPrice: unitPrice
+                    andTransactionId: transactionId
+                    andBase64Receipt: base64Receipt];
+    } else {
+        [TenjinSDK transactionWithProductName: productName
+                    andCurrencyCode: currencyCode
+                    andQuantity: (NSInteger) quantity
+                    andUnitPrice: unitPrice];
+    }
 }
 
 #endif

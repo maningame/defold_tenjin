@@ -36,8 +36,21 @@ Send custom event with event_name
 #### tenjin.custom_event_with_value(string event_name, string event_value)
 Send custom event with event_name and event_value. 
 IMPORTANT! event_value should be send as a string BUT it should contain the integer value!
-#### tenjin.purchase_event(string product_id, string currency_code, int quantity, double price)
-Send purchase event. product_id -> the name or ID of your product; currency_code -> the currency of your unit price; quantity -> the number of products that are counted for this purchase event; price -> the price of each product
+#### tenjin.purchase_event(string product_id, string currency_code, int quantity, double price [, string transaction_id, string receipt, string signature])
+Send purchase event. product_id -> the name or ID of your product; currency_code -> the currency of your unit price; quantity -> the number of products that are counted for this purchase event; price -> the price of each product.
+
+The last three arguments are **optional but required for the purchase to show up in the Tenjin dashboard** — Tenjin only reports purchases it can verify server-side, and verification needs the store receipt. Map the fields from the response Google/Apple IAP returns:
+
+- **Android**: `receipt` -> `original_json` (the purchaseData), `signature` -> `signature`. `transaction_id` is ignored.
+- **iOS**: `transaction_id` -> `trans_ident`, `receipt` -> the base64 `receipt`. `signature` is ignored.
+
+If you omit them, the SDK falls back to the old unverified call and purchases will not appear in the dashboard.
+
+Example with a Google IAP response:
+```lua
+-- response is the table returned by the iap extension on Android
+tenjin.purchase_event(response.ident, "USD", 1, 0.99, "", response.original_json, response.signature)
+```
 
 ## SDK support level
 Some APIs are not supported in this version of extention, see the full list of native SDK methods in the [Tenjin iOS SDK repo](https://github.com/tenjin/tenjin-ios-sdk) and [Tenjin Andoir SDK repo](ttps://github.com/tenjin/tenjin-android-sdk) 
