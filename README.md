@@ -51,6 +51,16 @@ Example with a Google IAP response:
 -- response is the table returned by the iap extension on Android
 tenjin.purchase_event(response.ident, "USD", 1, 0.99, "", response.original_json, response.signature)
 ```
+#### tenjin.purchase_event_non_validated(string product_id, string currency_code, int quantity, double price)
+**Android only.** Send a purchase made outside of Google Play (alternative app stores, custom billing) to Tenjin. Since there is no Google receipt to verify, the purchase is reported server-to-server via `POST https://track.tenjin.com/v0/purchase` and the price is trusted as-is.
+
+The request includes `analytics_installation_id` taken from the SDK, which ties the purchase to the user's attribution — so call this only after `tenjin.init`. The advertising ID (GAID) is fetched in the background during `tenjin.init` and attached when available. The request is fired once from a background thread; the response is only logged, there are no retries.
+
+For builds distributed outside of Google Play also set the `app_store` extension setting (`amazon` or `other`) in game.project.
+
+```lua
+tenjin.purchase_event_non_validated("com.company.inapp", "USD", 1, 0.99)
+```
 
 ## SDK support level
 Some APIs are not supported in this version of extention, see the full list of native SDK methods in the [Tenjin iOS SDK repo](https://github.com/tenjin/tenjin-ios-sdk) and [Tenjin Andoir SDK repo](ttps://github.com/tenjin/tenjin-android-sdk) 

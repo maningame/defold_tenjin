@@ -130,4 +130,21 @@ void Tenjin_PurchaseEvent(const char* product_id, const char* currency_code, con
     env->DeleteLocalRef(dataSignature);
 }
 
+void Tenjin_PurchaseEventNonValidated(const char* product_id, const char* currency_code, const int quantity, const double price)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+
+    jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
+    jmethodID method = env->GetStaticMethodID(cls, "PurchaseEventNonValidated", "(Ljava/lang/String;Ljava/lang/String;ID)V");
+
+    jstring productId = env->NewStringUTF(product_id);
+    jstring currencyCode = env->NewStringUTF(currency_code);
+
+    env->CallStaticVoidMethod(cls, method, productId, currencyCode, quantity, price);
+
+    env->DeleteLocalRef(productId);
+    env->DeleteLocalRef(currencyCode);
+}
+
 #endif

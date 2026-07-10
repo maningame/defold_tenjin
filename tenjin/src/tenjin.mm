@@ -54,4 +54,10 @@ void Tenjin_PurchaseEvent(const char* product_id, const char* currency_code, con
     }
 }
 
+void Tenjin_PurchaseEventNonValidated(const char* product_id, const char* currency_code, const int quantity, const double price) {
+    // Purchases on iOS always go through the App Store, so the S2S
+    // non-validated path is Android only.
+    dmLogWarning("purchase_event_non_validated is not supported on iOS");
+}
+
 #endif

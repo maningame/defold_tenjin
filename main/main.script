@@ -13,5 +13,10 @@ function init(self)
 		-- so Tenjin can verify them. Map the fields from the Google/Apple IAP response:
 		-- Android:
 		-- tenjin.purchase_event(response.ident, "USD", 1, 0.99, "", response.original_json, response.signature)
+
+		-- For purchases made outside of Google Play (alternative stores / custom
+		-- billing) there is no receipt to verify, report them server-to-server
+		-- instead (Android only):
+		-- tenjin.purchase_event_non_validated("com.company.inapp", "USD", 1, 0.99)
 	end
 end
