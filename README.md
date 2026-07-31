@@ -68,7 +68,7 @@ tenjin.purchase_event(response.ident, "USD", 1, 0.99, "", response.original_json
 #### tenjin.purchase_event_non_validated(string product_id, string currency_code, int quantity, double price)
 **Android only.** Send a purchase made outside of Google Play (alternative app stores, custom billing) to Tenjin. Since there is no Google receipt to verify, the purchase is reported server-to-server via `POST https://track.tenjin.com/v0/purchase` and the price is trusted as-is.
 
-The request includes `analytics_installation_id` taken from the SDK, which ties the purchase to the user's attribution — so call this only after `tenjin.init`. The advertising ID (GAID) is fetched in the background during `tenjin.init`, and fetched on the spot if it is not ready yet. The request is fired once from a background thread; the sent parameters (without `api_key`), the missing identifiers and the response code are logged under the `Tenjin` tag, there are no retries.
+The request includes `analytics_installation_id` and `customer_user_id` taken from the SDK, which tie the purchase to the user's attribution and to your own user id in the raw data export — so call this only after `tenjin.init`, and set the customer user id before the purchase. The advertising ID (GAID) is fetched in the background during `tenjin.init`, and fetched on the spot if it is not ready yet. The request is fired once from a background thread; the sent parameters (without `api_key`), the missing identifiers and the response code are logged under the `Tenjin` tag, there are no retries.
 
 For builds distributed outside of Google Play also set the `app_store` extension setting (`amazon` or `other`) in game.project.
 

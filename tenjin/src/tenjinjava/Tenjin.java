@@ -133,6 +133,7 @@ class Tenjin {
                     StringBuilder params = new StringBuilder();
                     params.append("analytics_installation_id=").append(encode(installationId));
                     params.append("&advertising_id=").append(encode(adId));
+                    params.append("&customer_user_id=").append(encode(tenjinInstance.getCustomerUserId()));
                     params.append("&bundle_id=").append(encode(appContext.getPackageName()));
                     params.append("&platform=android");
                     params.append("&os_version=").append(Build.VERSION.SDK_INT);
