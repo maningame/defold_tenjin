@@ -4,7 +4,7 @@ This is a native extension for [Defold engine](http://www.defold.com) which allo
 
 ATTENTION! Not every API methods are fully supported, only initialization and sending custom events; see LUA Api section below for the list of supported methods.
 
-ATTENTION-2! On Android "Init()" method is called by demand, from your lua code, when documentation advices to do this in Android "OnResume" event. So, probably, sessions tracking is not fully correct.
+ATTENTION-2! The native SDK expects `connect` on every Android "OnResume", while `tenjin.init()` is called once from your lua code. Call `tenjin.connect()` on every window focus gained event to keep sessions correct.
 
 Used Tenjin iOS SDK v1.9.1: https://github.com/tenjin/tenjin-ios-sdk and Android SDK v1.9.3: https://github.com/tenjin/tenjin-android-sdk
 
@@ -17,20 +17,34 @@ Open your game.project file and in the dependencies field under project add:
 ## Example
 ```lua
 if tenjin then
-  
-  tenjin.init("YOUR_API_KEY", true)
+
+  tenjin.init("YOUR_API_KEY", true, sys.get_config_string("tenjin.app_store", "googleplay"))
+  tenjin.set_cache_event_setting(true)
   tenjin.custom_event("custom_event")
   tenjin.custom_event_with_value("custom_event", "10")
   tenjin.purchase_event("com.company.inapp", "USD", 1, 0.99)
+
+  window.set_listener(function(self, event)
+    if event == window.WINDOW_EVENT_FOCUS_GAINED then
+      tenjin.connect()
+    end
+  end)
 
 end
 ```
 
 ## LUA Api
-#### tenjin.init(string api_key, bool gdpr_consent)
+#### tenjin.init(string api_key, bool gdpr_consent [, string app_store])
 Initializes Tenjin, call this before any other calls to Tenjin. This call is enough to track your installs. 
 api_key - is your API_KEY from your [Tenjin Organization tab](https://tenjin.io/dashboard/organizations)
 gdpr_consent - boolean flag to forward your user's consent regarding sensitive data; send true for "OptIn", if permission are granted
+app_store - `googleplay` (default), `amazon` or `other`; describes where the app was **installed from**, not how the user pays. Android only, it duplicates the `TENJIN_APP_STORE` manifest meta-data so a broken manifest merge cannot silently downgrade the store to unspecified. Pass the `app_store` extension setting to keep both in sync.
+#### tenjin.connect()
+Sends a session and re-runs attribution. The native SDK expects this on every Android "OnResume": call it on `window.WINDOW_EVENT_FOCUS_GAINED`. Without it only the very first session of a process is tracked. On Android the app store is re-applied before connecting, as the SDK documentation prescribes.
+#### tenjin.set_cache_event_setting(bool is_enabled)
+**Android only.** Lets the SDK queue events that were fired without network and send them later. Call once after `tenjin.init`.
+#### tenjin.get_analytics_installation_id()
+**Android only.** Returns the SDK installation UUID that ties events to the install, or an empty string if the SDK is not initialized yet. Useful to log next to your own purchase events: without it Tenjin cannot attribute a server-to-server event.
 #### tenjin.custom_event(string event_name)
 Send custom event with event_name
 #### tenjin.custom_event_with_value(string event_name, string event_value)
@@ -54,7 +68,7 @@ tenjin.purchase_event(response.ident, "USD", 1, 0.99, "", response.original_json
 #### tenjin.purchase_event_non_validated(string product_id, string currency_code, int quantity, double price)
 **Android only.** Send a purchase made outside of Google Play (alternative app stores, custom billing) to Tenjin. Since there is no Google receipt to verify, the purchase is reported server-to-server via `POST https://track.tenjin.com/v0/purchase` and the price is trusted as-is.
 
-The request includes `analytics_installation_id` taken from the SDK, which ties the purchase to the user's attribution — so call this only after `tenjin.init`. The advertising ID (GAID) is fetched in the background during `tenjin.init` and attached when available. The request is fired once from a background thread; the response is only logged, there are no retries.
+The request includes `analytics_installation_id` taken from the SDK, which ties the purchase to the user's attribution — so call this only after `tenjin.init`. The advertising ID (GAID) is fetched in the background during `tenjin.init`, and fetched on the spot if it is not ready yet. The request is fired once from a background thread; the sent parameters (without `api_key`), the missing identifiers and the response code are logged under the `Tenjin` tag, there are no retries.
 
 For builds distributed outside of Google Play also set the `app_store` extension setting (`amazon` or `other`) in game.project.
 

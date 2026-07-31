@@ -12,9 +12,29 @@
 static int init(lua_State* L) {
     const char* api_key = luaL_checkstring(L, 1);
     bool gdpr_consent = lua_toboolean(L, 2);
-    
-    Tenjin_Init(api_key, gdpr_consent);
+    const char* app_store = luaL_optstring(L, 3, "googleplay");
+
+    Tenjin_Init(api_key, gdpr_consent, app_store);
     return 0;
+}
+
+static int connect(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 0);
+    Tenjin_Connect();
+    return 0;
+}
+
+static int set_cache_event_setting(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 0);
+    bool is_enabled = lua_toboolean(L, 1);
+    Tenjin_SetCacheEventSetting(is_enabled);
+    return 0;
+}
+
+static int get_analytics_installation_id(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 1);
+    lua_pushstring(L, Tenjin_GetAnalyticsInstallationId());
+    return 1;
 }
 
 static int set_customer_user_id(lua_State* L) {
@@ -67,6 +87,9 @@ static int purchase_event_non_validated(lua_State* L) {
 static const luaL_reg Module_methods[] =
 {
     {"init", init},
+    {"connect", connect},
+    {"set_cache_event_setting", set_cache_event_setting},
+    {"get_analytics_installation_id", get_analytics_installation_id},
     {"set_customer_user_id", set_customer_user_id},
     {"custom_event", custom_event},
     {"custom_event_with_value", custom_event_with_value},

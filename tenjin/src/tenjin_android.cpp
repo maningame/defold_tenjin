@@ -1,6 +1,9 @@
 #if defined(DM_PLATFORM_ANDROID)
 #include <dmsdk/sdk.h>
+#include <string.h>
 #include "tenjin.h"
+
+static char g_AnalyticsInstallationId[128] = { 0 };
 
 static JNIEnv* Attach()
 {
@@ -47,19 +50,68 @@ static jclass GetClass(JNIEnv* env, const char* classname)
     return outcls;
 }
 
-void Tenjin_Init(const char*api_key, bool gdpr_consent)
+void Tenjin_Init(const char*api_key, bool gdpr_consent, const char*app_store)
 {
     AttachScope attachscope;
     JNIEnv* env = attachscope.m_Env;
 
     jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
-    jmethodID method = env->GetStaticMethodID(cls, "Init", "(Landroid/app/Activity;Ljava/lang/String;Z)V");
+    jmethodID method = env->GetStaticMethodID(cls, "Init", "(Landroid/app/Activity;Ljava/lang/String;ZLjava/lang/String;)V");
 
     jstring key = env->NewStringUTF(api_key);
+    jstring appStore = env->NewStringUTF(app_store);
 
-    env->CallStaticVoidMethod(cls, method, dmGraphics::GetNativeAndroidActivity(), key, gdpr_consent ? JNI_TRUE : JNI_FALSE);
+    env->CallStaticVoidMethod(cls, method, dmGraphics::GetNativeAndroidActivity(), key, gdpr_consent ? JNI_TRUE : JNI_FALSE, appStore);
 
     env->DeleteLocalRef(key);
+    env->DeleteLocalRef(appStore);
+}
+
+void Tenjin_Connect()
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+
+    jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
+    jmethodID method = env->GetStaticMethodID(cls, "Connect", "()V");
+
+    env->CallStaticVoidMethod(cls, method);
+}
+
+void Tenjin_SetCacheEventSetting(bool is_enabled)
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+
+    jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
+    jmethodID method = env->GetStaticMethodID(cls, "SetCacheEventSetting", "(Z)V");
+
+    env->CallStaticVoidMethod(cls, method, is_enabled ? JNI_TRUE : JNI_FALSE);
+}
+
+const char* Tenjin_GetAnalyticsInstallationId()
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+
+    g_AnalyticsInstallationId[0] = 0;
+
+    jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
+    jmethodID method = env->GetStaticMethodID(cls, "GetAnalyticsInstallationId", "()Ljava/lang/String;");
+
+    jstring value = (jstring) env->CallStaticObjectMethod(cls, method);
+
+    if (value != NULL) {
+        const char* chars = env->GetStringUTFChars(value, NULL);
+
+        strncpy(g_AnalyticsInstallationId, chars, sizeof(g_AnalyticsInstallationId) - 1);
+        g_AnalyticsInstallationId[sizeof(g_AnalyticsInstallationId) - 1] = 0;
+
+        env->ReleaseStringUTFChars(value, chars);
+        env->DeleteLocalRef(value);
+    }
+
+    return g_AnalyticsInstallationId;
 }
 
 void Tenjin_SetCustomerUserId(const char* user_id)

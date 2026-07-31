@@ -1,9 +1,21 @@
 function init(self)
 	if tenjin then
 		local sdk_key = sys.get_config_string("tenjin.sdk_key")
+		local app_store = sys.get_config_string("tenjin.app_store", "googleplay")
 
-		tenjin.init(sdk_key, true)
+		tenjin.init(sdk_key, true, app_store)
+		tenjin.set_cache_event_setting(true)
 		tenjin.set_customer_user_id(1)
+
+		print("analytics installation id", tenjin.get_analytics_installation_id())
+
+		-- The SDK expects connect on every Android onResume, not only on the first
+		-- app open, otherwise only the first session of a process is tracked
+		window.set_listener(function(_, event)
+			if event == window.WINDOW_EVENT_FOCUS_GAINED then
+				tenjin.connect()
+			end
+		end)
 
 		tenjin.custom_event("custom_event")
 		tenjin.custom_event_with_value("custom_event", "10")

@@ -4,8 +4,8 @@
 #include "tenjin.h"
 #include "TenjinSDK.h"
 
-void Tenjin_Init(const char* api_key, bool gdpr_consent) {
-    
+void Tenjin_Init(const char* api_key, bool gdpr_consent, const char* app_store) {
+    // The App Store is the only distribution channel on iOS, app_store is Android only.
     [TenjinSDK init:[NSString stringWithUTF8String:api_key]];
 
     if (gdpr_consent) {
@@ -13,8 +13,21 @@ void Tenjin_Init(const char* api_key, bool gdpr_consent) {
     } else {
         [TenjinSDK optOut];
     }
-    
+
     [TenjinSDK connect];
+}
+
+void Tenjin_Connect() {
+    [TenjinSDK connect];
+}
+
+void Tenjin_SetCacheEventSetting(bool is_enabled) {
+    dmLogWarning("set_cache_event_setting is not supported on iOS");
+}
+
+const char* Tenjin_GetAnalyticsInstallationId() {
+    dmLogWarning("get_analytics_installation_id is not supported on iOS");
+    return "";
 }
 
 void Tenjin_SetCustomerUserId(const char* user_id) {

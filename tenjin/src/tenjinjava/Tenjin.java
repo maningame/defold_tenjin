@@ -22,13 +22,20 @@ class Tenjin {
     private static TenjinSDK tenjinInstance;
     private static Context appContext;
     private static String apiKey;
+    private static TenjinSDK.AppStoreType appStoreType = TenjinSDK.AppStoreType.googleplay;
     private static volatile String advertisingId = "";
 
-    public static final void Init(Activity appActivity, String apiKey, boolean consent) {
+    public static final void Init(Activity appActivity, String apiKey, boolean consent, String appStore) {
         Tenjin.apiKey = apiKey;
         Tenjin.appContext = appActivity.getApplicationContext();
+        Tenjin.appStoreType = parseAppStore(appStore);
 
         tenjinInstance = TenjinSDK.getInstance(appActivity, apiKey);
+
+        // The app store must be set between getInstance and connect. It duplicates the
+        // TENJIN_APP_STORE manifest meta-data on purpose: if the manifest merge ever
+        // breaks, the store silently falls back to unspecified and attribution rots.
+        tenjinInstance.setAppStore(appStoreType);
 
         if (consent) {
             tenjinInstance.optIn();
@@ -42,13 +49,41 @@ class Tenjin {
         // AdvertisingIdClient must not be called on the main thread
         new Thread(new Runnable() {
             public void run() {
-                try {
-                    advertisingId = AdvertisingIdClient.getAdvertisingIdInfo(appContext).getId();
-                } catch (Exception e) {
-                    Log.w(TAG, "Failed to fetch advertising id: " + e);
-                }
+                advertisingId = fetchAdvertisingId();
             }
         }).start();
+    }
+
+    // The SDK requires connect on every onResume, not only on the first app open,
+    // otherwise sessions and re-engagement are lost.
+    public static final void Connect() {
+        if (tenjinInstance == null) {
+            Log.w(TAG, "Connect called before Init, ignored");
+            return;
+        }
+
+        tenjinInstance.setAppStore(appStoreType);
+        tenjinInstance.connect();
+    }
+
+    public static final void SetCacheEventSetting(boolean isEnabled) {
+        if (tenjinInstance == null) {
+            Log.w(TAG, "SetCacheEventSetting called before Init, ignored");
+            return;
+        }
+
+        tenjinInstance.setCacheEventSetting(isEnabled);
+    }
+
+    public static final String GetAnalyticsInstallationId() {
+        if (tenjinInstance == null) {
+            Log.w(TAG, "GetAnalyticsInstallationId called before Init, ignored");
+            return "";
+        }
+
+        String installationId = tenjinInstance.getAnalyticsInstallationId();
+
+        return installationId == null ? "" : installationId;
     }
 
     public static final void SetCustomerUserId(String userId) {
@@ -84,26 +119,40 @@ class Tenjin {
             public void run() {
                 try {
                     String appVersion = appContext.getPackageManager().getPackageInfo(appContext.getPackageName(), 0).versionName;
+                    String installationId = GetAnalyticsInstallationId();
+                    String adId = ensureAdvertisingId();
 
-                    StringBuilder url = new StringBuilder(PURCHASE_URL);
-                    url.append("?api_key=").append(encode(apiKey));
-                    url.append("&analytics_installation_id=").append(encode(tenjinInstance.getAnalyticsInstallationId()));
-                    url.append("&advertising_id=").append(encode(advertisingId));
-                    url.append("&bundle_id=").append(encode(appContext.getPackageName()));
-                    url.append("&platform=android");
-                    url.append("&os_version=").append(Build.VERSION.SDK_INT);
-                    url.append("&app_version=").append(encode(appVersion));
-                    url.append("&sdk_version=").append(encode(TenjinConsts.sdkVersion));
-                    url.append("&product_id=").append(encode(productId));
-                    url.append("&price=").append(unitPrice);
-                    url.append("&quantity=").append(quantity);
-                    url.append("&currency=").append(encode(currencyCode));
-                    url.append("&os_version_release=").append(encode(Build.VERSION.RELEASE));
-                    url.append("&locale=").append(encode(Locale.getDefault().toLanguageTag()));
-                    url.append("&build_id=").append(encode(Build.ID));
-                    url.append("&device_model=").append(encode(Build.MODEL));
+                    if (installationId.isEmpty()) {
+                        Log.w(TAG, "S2S purchase has no analytics_installation_id, it cannot be attributed to an install");
+                    }
 
-                    HttpURLConnection connection = (HttpURLConnection) new URL(url.toString()).openConnection();
+                    if (adId.isEmpty()) {
+                        Log.w(TAG, "S2S purchase has no advertising_id, attribution falls back to ip matching");
+                    }
+
+                    StringBuilder params = new StringBuilder();
+                    params.append("analytics_installation_id=").append(encode(installationId));
+                    params.append("&advertising_id=").append(encode(adId));
+                    params.append("&bundle_id=").append(encode(appContext.getPackageName()));
+                    params.append("&platform=android");
+                    params.append("&os_version=").append(Build.VERSION.SDK_INT);
+                    params.append("&app_version=").append(encode(appVersion));
+                    params.append("&sdk_version=").append(encode(TenjinConsts.sdkVersion));
+                    params.append("&product_id=").append(encode(productId));
+                    params.append("&price=").append(unitPrice);
+                    params.append("&quantity=").append(quantity);
+                    params.append("&currency=").append(encode(currencyCode));
+                    params.append("&os_version_release=").append(encode(Build.VERSION.RELEASE));
+                    params.append("&locale=").append(encode(Locale.getDefault().toLanguageTag()));
+                    params.append("&build_id=").append(encode(Build.ID));
+                    params.append("&device_model=").append(encode(Build.MODEL));
+
+                    // api_key is kept out of the log on purpose
+                    Log.i(TAG, "S2S purchase: " + PURCHASE_URL + "?" + params);
+
+                    String url = PURCHASE_URL + "?api_key=" + encode(apiKey) + "&" + params;
+
+                    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
                     try {
                         connection.setRequestMethod("POST");
                         connection.setFixedLengthStreamingMode(0);
@@ -121,6 +170,43 @@ class Tenjin {
                 }
             }
         }).start();
+    }
+
+    private static TenjinSDK.AppStoreType parseAppStore(String appStore) {
+        if ("other".equals(appStore)) {
+            return TenjinSDK.AppStoreType.other;
+        }
+
+        if ("amazon".equals(appStore)) {
+            return TenjinSDK.AppStoreType.amazon;
+        }
+
+        if (!"googleplay".equals(appStore)) {
+            Log.w(TAG, "Unknown app store '" + appStore + "', falling back to googleplay");
+        }
+
+        return TenjinSDK.AppStoreType.googleplay;
+    }
+
+    // Must not be called on the main thread
+    private static String ensureAdvertisingId() {
+        if (advertisingId.isEmpty()) {
+            advertisingId = fetchAdvertisingId();
+        }
+
+        return advertisingId;
+    }
+
+    private static String fetchAdvertisingId() {
+        try {
+            String id = AdvertisingIdClient.getAdvertisingIdInfo(appContext).getId();
+
+            return id == null ? "" : id;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to fetch advertising id: " + e);
+
+            return "";
+        }
     }
 
     private static String encode(String value) throws Exception {
