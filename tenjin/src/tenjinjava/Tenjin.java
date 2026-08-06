@@ -7,7 +7,6 @@ import android.util.Log;
 
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.tenjin.android.TenjinSDK;
-import com.tenjin.android.config.TenjinConsts;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -138,7 +137,9 @@ class Tenjin {
                     params.append("&platform=android");
                     params.append("&os_version=").append(Build.VERSION.SDK_INT);
                     params.append("&app_version=").append(encode(appVersion));
-                    params.append("&sdk_version=").append(encode(TenjinConsts.sdkVersion));
+                    // Tenjin support requires the literal "server" for S2S purchases,
+                    // not the native SDK version
+                    params.append("&sdk_version=server");
                     params.append("&product_id=").append(encode(productId));
                     params.append("&price=").append(unitPrice);
                     params.append("&quantity=").append(quantity);
