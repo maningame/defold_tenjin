@@ -37,6 +37,12 @@ static int get_analytics_installation_id(lua_State* L) {
     return 1;
 }
 
+static int get_advertising_id(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 1);
+    lua_pushstring(L, Tenjin_GetAdvertisingId());
+    return 1;
+}
+
 static int set_customer_user_id(lua_State* L) {
     DM_LUA_STACK_CHECK(L, 0);
     const char* user_id = luaL_checkstring(L, 1);
@@ -90,6 +96,7 @@ static const luaL_reg Module_methods[] =
     {"connect", connect},
     {"set_cache_event_setting", set_cache_event_setting},
     {"get_analytics_installation_id", get_analytics_installation_id},
+    {"get_advertising_id", get_advertising_id},
     {"set_customer_user_id", set_customer_user_id},
     {"custom_event", custom_event},
     {"custom_event_with_value", custom_event_with_value},

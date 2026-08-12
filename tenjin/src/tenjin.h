@@ -5,6 +5,7 @@ extern void Tenjin_Init(const char*api_key, bool gdpr_consent, const char*app_st
 extern void Tenjin_Connect();
 extern void Tenjin_SetCacheEventSetting(bool is_enabled);
 extern const char* Tenjin_GetAnalyticsInstallationId();
+extern const char* Tenjin_GetAdvertisingId();
 extern void Tenjin_SetCustomerUserId(const char*user_id);
 extern void Tenjin_CustomEvent(const char*event_name);
 extern void Tenjin_CustomEventWithValue(const char*event_name, const char*event_value);

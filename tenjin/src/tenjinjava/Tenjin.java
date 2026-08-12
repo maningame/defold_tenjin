@@ -85,6 +85,13 @@ class Tenjin {
         return installationId == null ? "" : installationId;
     }
 
+    // The GAID is fetched in the background during Init, so this returns an empty
+    // string for the first moments of the session. Never blocks: fetching it on the
+    // caller's thread would freeze the main thread.
+    public static final String GetAdvertisingId() {
+        return advertisingId;
+    }
+
     public static final void SetCustomerUserId(String userId) {
         tenjinInstance.setCustomerUserId(userId);
     }

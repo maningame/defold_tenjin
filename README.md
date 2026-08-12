@@ -45,6 +45,8 @@ Sends a session and re-runs attribution. The native SDK expects this on every An
 **Android only.** Lets the SDK queue events that were fired without network and send them later. Call once after `tenjin.init`.
 #### tenjin.get_analytics_installation_id()
 **Android only.** Returns the SDK installation UUID that ties events to the install, or an empty string if the SDK is not initialized yet. Useful to log next to your own purchase events: without it Tenjin cannot attribute a server-to-server event.
+#### tenjin.get_advertising_id()
+**Android only.** Returns the advertising ID (GAID), or an empty string while it is not ready — it is fetched in the background during `tenjin.init` and never on the calling thread. Needed when you report purchases to the Tenjin REST API yourself.
 #### tenjin.custom_event(string event_name)
 Send custom event with event_name
 #### tenjin.custom_event_with_value(string event_name, string event_value)

@@ -4,6 +4,7 @@
 #include "tenjin.h"
 
 static char g_AnalyticsInstallationId[128] = { 0 };
+static char g_AdvertisingId[128] = { 0 };
 
 static JNIEnv* Attach()
 {
@@ -112,6 +113,31 @@ const char* Tenjin_GetAnalyticsInstallationId()
     }
 
     return g_AnalyticsInstallationId;
+}
+
+const char* Tenjin_GetAdvertisingId()
+{
+    AttachScope attachscope;
+    JNIEnv* env = attachscope.m_Env;
+
+    g_AdvertisingId[0] = 0;
+
+    jclass cls = GetClass(env, "com.anvil.tenjin.Tenjin");
+    jmethodID method = env->GetStaticMethodID(cls, "GetAdvertisingId", "()Ljava/lang/String;");
+
+    jstring value = (jstring) env->CallStaticObjectMethod(cls, method);
+
+    if (value != NULL) {
+        const char* chars = env->GetStringUTFChars(value, NULL);
+
+        strncpy(g_AdvertisingId, chars, sizeof(g_AdvertisingId) - 1);
+        g_AdvertisingId[sizeof(g_AdvertisingId) - 1] = 0;
+
+        env->ReleaseStringUTFChars(value, chars);
+        env->DeleteLocalRef(value);
+    }
+
+    return g_AdvertisingId;
 }
 
 void Tenjin_SetCustomerUserId(const char* user_id)

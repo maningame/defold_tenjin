@@ -30,6 +30,11 @@ const char* Tenjin_GetAnalyticsInstallationId() {
     return "";
 }
 
+const char* Tenjin_GetAdvertisingId() {
+    dmLogWarning("get_advertising_id is not supported on iOS");
+    return "";
+}
+
 void Tenjin_SetCustomerUserId(const char* user_id) {
     [TenjinSDK setCustomerUserId:[NSString stringWithUTF8String:user_id]];
 }
